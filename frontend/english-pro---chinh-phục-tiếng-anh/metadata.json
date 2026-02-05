@@ -1,0 +1,7 @@
+{
+  "name": "English Pro - Chinh phục tiếng Anh",
+  "description": "Một ứng dụng học tiếng Anh toàn diện với lộ trình cá nhân hóa, thẻ ghi nhớ thông minh và các thử thách hàng ngày giúp bạn tiến bộ nhanh chóng.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
