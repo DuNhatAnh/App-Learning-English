@@ -1,31 +1,71 @@
-version: '3.8'
-
 services:
-  frontend:
+  # API Gateway - Điểm vào duy nhất
+  api-gateway:
     build:
-      context: ./frontend/english-pro---chinh-phục-tiếng-anh
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-PLACEHOLDER_API_KEY}
-      - VITE_API_URL=http://localhost:5001/api
-    depends_on:
-      - backend
-
-  backend:
-    build:
-      context: ./backend
+      context: ./services/api-gateway
       dockerfile: Dockerfile
     ports:
       - "5001:5001"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/english_learning?schema=public
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-PLACEHOLDER_API_KEY}
       - PORT=5001
+      - LESSON_SERVICE_URL=http://lesson-service:5002
+      - PROGRESS_SERVICE_URL=http://progress-service:5003
+      - AI_SERVICE_URL=http://ai-service:5004
+    depends_on:
+      - lesson-service
+      - progress-service
+      - ai-service
+
+  # Lesson Service - Bài học, lộ trình, thống kê
+  lesson-service:
+    build:
+      context: ./services/lesson-service
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - DATABASE_URL=postgresql://user:password@db:5432/english_learning?schema=public
     depends_on:
       - db
 
+  # Progress Service - Tiến độ học tập
+  progress-service:
+    build:
+      context: ./services/progress-service
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - DATABASE_URL=postgresql://user:password@db:5432/english_learning?schema=public
+    depends_on:
+      - db
+
+  # AI Service - Tích hợp Gemini AI
+  ai-service:
+    build:
+      context: ./services/ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-PLACEHOLDER_API_KEY}
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend/english-pro---chinh-phục-tiếng-anh
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:5001/api
+    depends_on:
+      - api-gateway
+
+  # Database
   db:
     image: postgres:15
     environment:

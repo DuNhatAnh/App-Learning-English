@@ -21,6 +21,17 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lessonId, onBack, onComplet
 
   const CHUNK_SIZE = 3;
 
+  // Text-to-Speech function
+  const speakWord = (text: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Ngăn sự kiện click lan ra thẻ cha
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.85;
+    utterance.pitch = 1;
+    window.speechSynthesis.cancel(); // Dừng nếu đang đọc
+    window.speechSynthesis.speak(utterance);
+  };
+
   // Reset state when lesson changes
   useEffect(() => {
     const loadDetail = async () => {
@@ -170,7 +181,9 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lessonId, onBack, onComplet
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-5">
-                        <button className="size-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                        <button
+                          onClick={(e) => speakWord(item.word, e)}
+                          className="size-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center hover:scale-110 transition-transform shadow-inner hover:bg-blue-100">
                           <span className="material-symbols-outlined text-3xl">volume_up</span>
                         </button>
                         <div>
