@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchPractice } from '../api';
 import PrimaryButton from '../components/PrimaryButton';
 
 interface FlashcardData {
@@ -15,54 +15,39 @@ interface FlashcardData {
   icon: string;
 }
 
-const MOCK_CARDS: FlashcardData[] = [
-  {
-    word: 'Commute',
-    type: 'Verb / Noun',
-    phonetic: '/kəˈmjuːt/',
-    meaning: 'Đi lại hằng ngày (giữa nhà và nơi làm)',
-    description: 'To travel some distance between one\'s home and place of work on a regular basis.',
-    example: 'She commutes from Oxford to London every day by train.',
-    exampleVi: 'Cô ấy đi làm hằng ngày từ Oxford đến London bằng tàu hỏa.',
-    collocations: ['Daily commute', 'Long commute', 'Commute to work'],
-    imageUrl: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80&w=800',
-    icon: 'directions_bus'
-  },
-  {
-    word: 'Appointment',
-    type: 'Noun',
-    phonetic: '/əˈpɔɪntmənt/',
-    meaning: 'Cuộc hẹn (trang trọng)',
-    description: 'An arrangement to meet someone at a particular time and place.',
-    example: 'I have a dental appointment at 3 PM today.',
-    exampleVi: 'Tôi có một cuộc hẹn khám răng vào lúc 3 giờ chiều nay.',
-    collocations: ['Make an appointment', 'Cancel an appointment', 'Doctor\'s appointment'],
-    imageUrl: 'https://images.unsplash.com/photo-1506784919141-935043330682?auto=format&fit=crop&q=80&w=800',
-    icon: 'event'
-  },
-  {
-    word: 'Atmosphere',
-    type: 'Noun',
-    phonetic: '/ˈætməsfɪə(r)/',
-    meaning: 'Bầu không khí',
-    description: 'The feeling or mood that exists in a particular place or situation.',
-    example: 'This restaurant has a very cozy and romantic atmosphere.',
-    exampleVi: 'Nhà hàng này có một bầu không khí rất ấm cúng và lãng mạn.',
-    collocations: ['Relaxed atmosphere', 'Friendly atmosphere', 'Festive atmosphere'],
-    imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800',
-    icon: 'mood'
-  }
-];
-
 const PracticeScreen: React.FC = () => {
+  const [cards, setCards] = useState<FlashcardData[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const card = MOCK_CARDS[currentIndex];
+  useEffect(() => {
+    const loadCards = async () => {
+      try {
+        const data = await fetchPractice();
+        setCards(data);
+      } catch (error) {
+        console.error('Lỗi khi tải thẻ ghi nhớ:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCards();
+  }, []);
+
+  if (loading || cards.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  const card = cards[currentIndex];
 
   const handleNext = () => {
     setIsFlipped(false);
-    setCurrentIndex((prev) => (prev + 1) % MOCK_CARDS.length);
+    setCurrentIndex((prev) => (prev + 1) % cards.length);
   };
 
   return (
@@ -81,7 +66,7 @@ const PracticeScreen: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="text-right">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiến độ hôm nay</p>
-            <p className="text-sm font-black text-slate-700">{currentIndex + 1} / {MOCK_CARDS.length} từ</p>
+            <p className="text-sm font-black text-slate-700">{currentIndex + 1} / {cards.length} từ</p>
           </div>
           <div className="size-12 rounded-2xl bg-white border border-blue-100 flex items-center justify-center text-primary shadow-sm">
             <span className="material-symbols-outlined filled">star</span>

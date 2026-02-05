@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  streak        Int       @default(0)
+  totalStudyTime Int      @default(0)
+  lastStudyDate DateTime?
+  progress      Progress[]
+}
+
+model Lesson {
+  id          String    @id @default(uuid())
+  title       String
+  order       Int       @unique
+  content     String?
+  vocab       Vocabulary[]
+  quizzes     QuizQuestion[]
+  tips        String?
+  progress    Progress[]
+}
+
+model Progress {
+  id        String   @id @default(uuid())
+  userId    String
+  lessonId  String
+  status    String   @default("LOCKED") // LOCKED, ACTIVE, COMPLETED
+  percentage Int     @default(0)
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  lesson Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([userId, lessonId])
+}
+
+model Vocabulary {
+  id       String @id @default(uuid())
+  word     String
+  phonetic String?
+  meaning  String
+  examples String[] // Mảng 3 ví dụ cho mỗi từ
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id])
+}
+
+model QuizQuestion {
+  id            String   @id @default(uuid())
+  question      String
+  options       String[] // Store as JSON or string array
+  correctAnswer String
+  tip           String?
+  lessonId      String
+  lesson        Lesson   @relation(fields: [lessonId], references: [id])
+}
+
+model DailyTask {
+  id          String   @id @default(uuid())
+  title       String
+  type        String   // QUIZ, LISTENING, WRITING
+  isCompleted Boolean  @default(false)
+  date        DateTime @default(now())
+}

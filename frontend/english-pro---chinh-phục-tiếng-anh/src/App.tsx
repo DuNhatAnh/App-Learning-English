@@ -16,9 +16,9 @@ import ChallengeSummaryScreen from './screens/ChallengeSummaryScreen';
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>(AppTab.LEARN);
   const [currentView, setCurrentView] = useState<'main' | 'lesson' | 'celebration' | 'listening_quiz' | 'fill_blanks' | 'vocabulary_quiz' | 'challenge_summary'>('main');
-  const [selectedLessonId, setSelectedLessonId] = useState<number>(3);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
 
-  const handleStartLesson = (lessonId: number) => {
+  const handleStartLesson = (lessonId: string) => {
     setSelectedLessonId(lessonId);
     setCurrentView('lesson');
   };
@@ -46,7 +46,7 @@ const App: React.FC = () => {
     }
   };
 
-  if (currentView === 'lesson') {
+  if (currentView === 'lesson' && selectedLessonId) {
     return <LessonDetail lessonId={selectedLessonId} onBack={() => setCurrentView('main')} onComplete={() => setCurrentView('celebration')} />;
   }
 

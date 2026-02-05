@@ -9,3 +9,33 @@ services:
       - "3000:3000"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-PLACEHOLDER_API_KEY}
+      - VITE_API_URL=http://localhost:5001/api
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/english_learning?schema=public
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-PLACEHOLDER_API_KEY}
+      - PORT=5001
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=english_learning
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

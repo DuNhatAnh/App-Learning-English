@@ -1,9 +1,32 @@
-
-import React from 'react';
-import { MOCK_ACTIVITIES } from '../constants';
+import React, { useEffect, useState } from 'react';
+import { fetchStats } from '../api';
 import ProgressBar from '../components/ProgressBar';
 
 const ProfileScreen: React.FC = () => {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await fetchStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Lỗi khi tải thống kê:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStats();
+  }, []);
+
+  if (loading || !stats) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   return (
     <div className="max-w-[1200px] mx-auto px-4 py-8 space-y-6 animate-fade-in">
       <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
@@ -44,10 +67,10 @@ const ProfileScreen: React.FC = () => {
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Số bài đã học', value: '42', icon: 'menu_book', color: 'text-blue-500' },
-          { label: 'Chuỗi ngày học', value: '15 ngày', icon: 'local_fire_department', color: 'text-orange-500' },
-          { label: 'Tổng thời gian', value: '120 giờ', icon: 'schedule', color: 'text-purple-500' },
-          { label: 'Thử thách', value: '05 hoàn thành', icon: 'emoji_events', color: 'text-yellow-500' },
+          { label: 'Số bài đã học', value: stats.completedLessons.toString(), icon: 'menu_book', color: 'text-blue-500' },
+          { label: 'Chuỗi ngày học', value: `${stats.streak} ngày`, icon: 'local_fire_department', color: 'text-orange-500' },
+          { label: 'Tổng thời gian', value: `${stats.totalMinutes} phút`, icon: 'schedule', color: 'text-purple-500' },
+          { label: 'Thử thách', value: '02 hoàn thành', icon: 'emoji_events', color: 'text-yellow-500' },
         ].map((stat) => (
           <div key={stat.label} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2 transition-transform hover:-translate-y-1">
             <div className={`flex items-center gap-2 ${stat.color} text-[10px] font-black uppercase tracking-widest`}>
@@ -67,12 +90,7 @@ const ProfileScreen: React.FC = () => {
               <button className="text-[11px] text-primary font-black uppercase tracking-wider hover:underline">Chi tiết</button>
             </div>
             <div className="space-y-6">
-              {[
-                { name: 'Listening', value: 75 },
-                { name: 'Speaking', value: 45 },
-                { name: 'Reading', value: 80 },
-                { name: 'Vocabulary', value: 60 },
-              ].map((skill) => (
+              {stats.skills.map((skill: any) => (
                 <ProgressBar
                   key={skill.name}
                   label={skill.name}
@@ -105,7 +123,10 @@ const ProfileScreen: React.FC = () => {
           <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex-1">
             <h3 className="text-lg font-black mb-8">Hoạt động gần đây</h3>
             <div className="relative pl-6 border-l-2 border-slate-100 space-y-8">
-              {MOCK_ACTIVITIES.map((activity) => (
+              {[
+                { id: '1', title: 'Hoàn thành bài học đầu tiên', timestamp: 'Vừa xong', type: 'success' },
+                { id: '2', title: 'Cập nhật mục tiêu học tập', timestamp: '1 giờ trước', type: 'primary' },
+              ].map((activity) => (
                 <div key={activity.id} className="relative group">
                   <span className={`absolute -left-[33px] top-1 h-3.5 w-3.5 rounded-full ring-4 ring-white shadow-sm
                     ${activity.type === 'success' ? 'bg-green-500' :

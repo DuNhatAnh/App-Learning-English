@@ -7,35 +7,47 @@ export enum AppTab {
 }
 
 export enum LessonStatus {
-  COMPLETED = 'completed',
-  ACTIVE = 'active',
-  LOCKED = 'locked'
+  COMPLETED = 'COMPLETED',
+  ACTIVE = 'ACTIVE',
+  LOCKED = 'LOCKED'
 }
 
 export interface Lesson {
-  id: number;
+  id: string;
   title: string;
-  description: string;
-  duration: number;
+  description?: string;
+  order: number;
+  duration?: number;
   status: LessonStatus;
   progress?: number;
 }
 
 export interface Vocabulary {
+  id?: string;
   word: string;
-  phonetic: string;
   meaning: string;
+  phonetic?: string;
+  examples: string[];
+}
+
+export interface QuizQuestion {
+  id?: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  tip?: string;
 }
 
 export interface LessonContent {
-  id: number;
-  sectionTitle: string;
+  id: string;
+  title: string;
   vocab: Vocabulary[];
-  quizQuestion: string;
-  quizOptions: string[];
-  correctAnswer: string;
-  feedbackText: string;
-  tip: string;
+  quizzes: QuizQuestion[];
+  tips?: string;
+  progress?: {
+    percentage: number;
+    status: LessonStatus;
+  } | null;
 }
 
 export interface UserStats {
