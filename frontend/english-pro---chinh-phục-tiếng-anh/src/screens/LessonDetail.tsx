@@ -21,19 +21,35 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lessonId, onBack, onComplet
 
   const CHUNK_SIZE = 3;
 
-  // Text-to-Speech function
-  const speakWord = (text: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Ngăn sự kiện click lan ra thẻ cha
+  // Improved Text-to-Speech function
+  const speak = (text: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     const utterance = new SpeechSynthesisUtterance(text);
+
+    // Tìm giọng đọc chất lượng cao (ưu tiên Google US English)
+    const voices = window.speechSynthesis.getVoices();
+    const googleVoice = voices.find(v => v.name === 'Google US English') ||
+      voices.find(v => v.name.includes('Google') && v.lang.startsWith('en')) ||
+      voices.find(v => v.lang.startsWith('en-US')) ||
+      voices.find(v => v.lang.startsWith('en'));
+
+    if (googleVoice) {
+      utterance.voice = googleVoice;
+    }
+
     utterance.lang = 'en-US';
-    utterance.rate = 0.85;
+    utterance.rate = 0.9; // Tốc độ hơi chậm một chút để dễ nghe
     utterance.pitch = 1;
+
     window.speechSynthesis.cancel(); // Dừng nếu đang đọc
     window.speechSynthesis.speak(utterance);
   };
 
   // Reset state when lesson changes
   useEffect(() => {
+    // Load voices early to ensure they are available
+    window.speechSynthesis.getVoices();
+
     const loadDetail = async () => {
       setLoading(true);
       try {
@@ -182,7 +198,7 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lessonId, onBack, onComplet
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-5">
                         <button
-                          onClick={(e) => speakWord(item.word, e)}
+                          onClick={(e) => speak(item.word, e)}
                           className="size-14 rounded-2xl bg-blue-50 text-primary flex items-center justify-center hover:scale-110 transition-transform shadow-inner hover:bg-blue-100">
                           <span className="material-symbols-outlined text-3xl">volume_up</span>
                         </button>
@@ -203,9 +219,14 @@ const LessonDetail: React.FC<LessonDetailProps> = ({ lessonId, onBack, onComplet
                       <div className="mt-6 pt-6 border-t border-slate-100 space-y-4 animate-slide-down">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ví dụ sử dụng</p>
                         {item.examples.map((ex, idx) => (
-                          <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex gap-3">
-                            <span className="size-6 rounded-full bg-white text-primary text-[10px] font-black flex items-center justify-center flex-shrink-0 shadow-sm">{idx + 1}</span>
-                            <p className="text-slate-700 font-medium leading-relaxed">{ex}</p>
+                          <div
+                            key={idx}
+                            onClick={(e) => speak(ex.split(' (')[0], e)}
+                            className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex gap-4 hover:border-primary/30 hover:bg-blue-50/30 transition-all group/ex cursor-pointer">
+                            <button className="size-10 rounded-full bg-white text-primary text-[10px] font-black flex items-center justify-center flex-shrink-0 shadow-sm group-hover/ex:scale-110 group-hover/ex:bg-primary group-hover/ex:text-white transition-all">
+                              <span className="material-symbols-outlined text-lg">volume_up</span>
+                            </button>
+                            <p className="text-slate-700 font-medium leading-relaxed mt-1">{ex}</p>
                           </div>
                         ))}
                       </div>
