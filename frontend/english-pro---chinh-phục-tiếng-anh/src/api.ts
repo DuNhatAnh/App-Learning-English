@@ -56,3 +56,75 @@ export const fetchPractice = async (): Promise<any[]> => {
     if (!response.ok) throw new Error('Không thể lấy dữ liệu luyện tập');
     return response.json();
 };
+
+export const fetchRandomQuiz = async (): Promise<any[]> => {
+    const response = await fetch(`${API_BASE_URL}/challenge/random-quiz`);
+    if (!response.ok) throw new Error('Không thể lấy bộ câu hỏi thử thách');
+    return response.json();
+};
+
+export const fetchChallengeHistory = async (): Promise<any[]> => {
+    const response = await fetch(`${API_BASE_URL}/challenge/history/${MOCK_USER_ID}`);
+    if (!response.ok) throw new Error('Không thể lấy lịch sử thử thách');
+    return response.json();
+};
+
+export const saveChallengeResult = async (title: string, score: number, total: number) => {
+    const response = await fetch(`${API_BASE_URL}/challenge/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: MOCK_USER_ID, title, score, total }),
+    });
+    if (!response.ok) throw new Error('Không thể lưu kết quả thử thách');
+    return response.json();
+};
+
+export interface AIFlashcard {
+    word: string;
+    phonetic: string;
+    meaning: string;
+    hint: string;
+    example: string;
+    exampleVi: string;
+    collocations: string[];
+}
+
+export interface AIQuotaInfo {
+    date: string;
+    maxCards: number;
+    usedCards: number;
+    remainingCards: number;
+    maxRequests: number;
+    usedRequests: number;
+    remainingRequests: number;
+}
+
+export interface AIFlashcardResponse {
+    flashcards: AIFlashcard[];
+    quota: AIQuotaInfo;
+}
+
+export const generateAIFlashcards = async (topic: string, count: number): Promise<AIFlashcardResponse> => {
+    const response = await fetch(`${API_BASE_URL}/ai/generate-flashcards`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, count }),
+    });
+    if (!response.ok) {
+        let errorMessage = 'Không thể tạo flashcard từ AI';
+        try {
+            const payload = await response.json();
+            if (payload?.error) errorMessage = payload.error;
+        } catch {
+            // ignore parse errors
+        }
+        throw new Error(errorMessage);
+    }
+    return response.json();
+};
+
+export const fetchAIQuota = async (): Promise<AIQuotaInfo> => {
+    const response = await fetch(`${API_BASE_URL}/ai/quota`);
+    if (!response.ok) throw new Error('Không thể tải quota AI');
+    return response.json();
+};

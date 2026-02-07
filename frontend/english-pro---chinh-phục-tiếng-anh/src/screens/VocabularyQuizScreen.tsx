@@ -2,65 +2,31 @@
 import React, { useState } from 'react';
 
 interface Question {
-  id: number;
+  id: string;
   question: string;
-  context: string;
-  options: { label: string; text: string; subtext?: string }[];
-  correct: string;
+  options: string[];
+  correctAnswer: string;
 }
 
-const QUESTIONS: Question[] = [
-  {
-    id: 1,
-    question: "Bạn nên nói gì khi muốn thu hút sự chú ý của ai đó một cách lịch sự?",
-    context: "\"________, do you happen to know where the nearest post office is?\"",
-    options: [
-      { label: 'A', text: 'Hey you!', subtext: 'Ê bạn!' },
-      { label: 'B', text: 'Excuse me', subtext: 'Xin lỗi cho hỏi' },
-      { label: 'C', text: 'Attention', subtext: 'Chú ý đây' },
-      { label: 'D', text: 'Stop here', subtext: 'Dừng lại' }
-    ],
-    correct: 'B'
-  },
-  {
-    id: 2,
-    question: "Chọn câu trả lời phù hợp cho: \"Thank you so much for your help!\"",
-    context: "Reply to gratitude",
-    options: [
-      { label: 'A', text: 'No problem', subtext: 'Không có gì' },
-      { label: 'B', text: 'I am okay', subtext: 'Tôi ổn' },
-      { label: 'C', text: 'Yes, help', subtext: 'Vâng, giúp' },
-      { label: 'D', text: 'Who are you?', subtext: 'Bạn là ai?' }
-    ],
-    correct: 'A'
-  },
-  {
-    id: 3,
-    question: "Trong nhà hàng, 'Would you like to see the menu?' có nghĩa là gì?",
-    context: "Server talking to customer",
-    options: [
-      { label: 'A', text: 'Bạn muốn ăn gì không?' },
-      { label: 'B', text: 'Bạn muốn xem thực đơn không?' },
-      { label: 'C', text: 'Bạn muốn trả tiền không?' },
-      { label: 'D', text: 'Bạn muốn về chưa?' }
-    ],
-    correct: 'B'
-  }
-];
+const QUESTIONS = []; // Will be replaced by dynamic data
 
 interface VocabularyQuizScreenProps {
-  onComplete: () => void;
+  onComplete: (score: number, total: number) => void;
   onBack: () => void;
+  questions?: Question[];
 }
 
-const VocabularyQuizScreen: React.FC<VocabularyQuizScreenProps> = ({ onComplete, onBack }) => {
+const VocabularyQuizScreen: React.FC<VocabularyQuizScreenProps> = ({ onComplete, onBack, questions = [] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [showNotification, setShowNotification] = useState<string | null>(null);
+  const [score, setScore] = useState(0);
 
-  const currentQuestion = QUESTIONS[currentIndex];
-  const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
+  if (questions.length === 0) return <div>Đang tải câu hỏi...</div>;
+
+  const currentQuestion = questions[currentIndex];
+  const progress = ((currentIndex + 1) / questions.length) * 100;
 
   const handleSelect = (label: string) => {
     if (feedback === 'correct') return;
@@ -71,23 +37,34 @@ const VocabularyQuizScreen: React.FC<VocabularyQuizScreenProps> = ({ onComplete,
 
   const handleCheck = () => {
     if (!selectedOption) return;
-    
-    const isCorrect = selectedOption === currentQuestion.correct;
-    
+
+    const isCorrect = selectedOption === currentQuestion.correctAnswer;
+
     if (isCorrect) {
       setFeedback('correct');
+      setScore(prev => prev + 1);
       setTimeout(() => {
-        if (currentIndex < QUESTIONS.length - 1) {
+        if (currentIndex < questions.length - 1) {
           setCurrentIndex(prev => prev + 1);
           setSelectedOption(null);
           setFeedback(null);
         } else {
-          onComplete();
+          onComplete(score + 1, questions.length);
         }
       }, 1000);
     } else {
       setFeedback('wrong');
       setShowNotification('Chưa đúng rồi! Hãy thử suy nghĩ lại nhé.');
+      setTimeout(() => {
+        if (currentIndex < questions.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+          setSelectedOption(null);
+          setFeedback(null);
+          setShowNotification(null);
+        } else {
+          onComplete(score, questions.length);
+        }
+      }, 1500);
     }
   };
 
@@ -119,32 +96,26 @@ const VocabularyQuizScreen: React.FC<VocabularyQuizScreenProps> = ({ onComplete,
 
       <main className="flex-1 flex flex-col items-center justify-center p-6 max-w-[800px] mx-auto w-full">
         <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100 w-full mb-8">
-          <h2 className="text-lg md:text-xl font-bold text-slate-500 mb-4 text-center">
+          <h2 className="text-xl md:text-2xl font-black text-slate-900 leading-relaxed text-center">
             {currentQuestion.question}
           </h2>
-          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center">
-             <p className="text-xl md:text-2xl font-black text-slate-900 leading-relaxed italic">
-                {currentQuestion.context}
-             </p>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-          {currentQuestion.options.map((opt) => (
+          {currentQuestion.options.map((opt, idx) => (
             <button
-              key={opt.label}
-              onClick={() => handleSelect(opt.label)}
+              key={idx}
+              onClick={() => handleSelect(opt)}
               className={`p-5 rounded-2xl border-2 text-left transition-all flex items-start gap-4 group
-                ${selectedOption === opt.label ? 'border-primary bg-blue-50 shadow-md ring-4 ring-primary/5' : 'border-white bg-white hover:border-slate-100 shadow-sm'}
-                ${feedback === 'correct' && opt.label === currentQuestion.correct ? 'border-green-500 bg-green-50 !ring-green-500/10' : ''}
-                ${feedback === 'wrong' && selectedOption === opt.label && opt.label !== currentQuestion.correct ? 'border-red-400 bg-red-50 !ring-red-400/10' : ''}`}>
+                ${selectedOption === opt ? 'border-primary bg-blue-50 shadow-md ring-4 ring-primary/5' : 'border-white bg-white hover:border-slate-100 shadow-sm'}
+                ${feedback === 'correct' && opt === currentQuestion.correctAnswer ? 'border-green-500 bg-green-50 !ring-green-500/10' : ''}
+                ${feedback === 'wrong' && selectedOption === opt && opt !== currentQuestion.correctAnswer ? 'border-red-400 bg-red-50 !ring-red-400/10' : ''}`}>
               <span className={`text-sm font-black w-8 h-8 rounded-lg flex items-center justify-center transition-colors flex-shrink-0
-                ${selectedOption === opt.label ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}>
-                {opt.label}
+                ${selectedOption === opt ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}>
+                {String.fromCharCode(65 + idx)}
               </span>
               <div className="flex-1 overflow-hidden">
-                <p className={`text-lg font-black truncate ${selectedOption === opt.label ? 'text-primary' : 'text-slate-700'}`}>{opt.text}</p>
-                {opt.subtext && <p className="text-xs text-slate-400 font-bold uppercase tracking-tight mt-0.5">{opt.subtext}</p>}
+                <p className={`text-lg font-black truncate ${selectedOption === opt ? 'text-primary' : 'text-slate-700'}`}>{opt}</p>
               </div>
             </button>
           ))}
@@ -152,7 +123,7 @@ const VocabularyQuizScreen: React.FC<VocabularyQuizScreenProps> = ({ onComplete,
       </main>
 
       <footer className="p-6 bg-white border-t border-slate-100 flex justify-center">
-        <button 
+        <button
           onClick={handleCheck}
           disabled={!selectedOption || feedback === 'correct'}
           className={`w-full max-w-[400px] py-4 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-lg

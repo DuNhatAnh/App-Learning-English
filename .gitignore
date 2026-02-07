@@ -40,3 +40,34 @@ coverage/
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+
+# --- System Files ---
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+*.DS_Store
+*.AppleDouble
+*.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*

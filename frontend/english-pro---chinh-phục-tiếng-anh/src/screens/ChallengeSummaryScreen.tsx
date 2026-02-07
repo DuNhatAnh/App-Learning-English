@@ -5,9 +5,11 @@ import PrimaryButton from '../components/PrimaryButton';
 
 interface ChallengeSummaryScreenProps {
   onBackToChallenges: () => void;
+  score: number;
+  total: number;
 }
 
-const ChallengeSummaryScreen: React.FC<ChallengeSummaryScreenProps> = ({ onBackToChallenges }) => {
+const ChallengeSummaryScreen: React.FC<ChallengeSummaryScreenProps> = ({ onBackToChallenges, score, total }) => {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 animate-fade-in relative overflow-hidden">
       {/* Confetti-like bits */}
@@ -40,9 +42,9 @@ const ChallengeSummaryScreen: React.FC<ChallengeSummaryScreenProps> = ({ onBackT
 
         <div className="grid grid-cols-3 gap-4 mb-10">
           {[
-            { label: 'Đúng', value: '18/20', icon: 'check_circle', color: 'text-green-500' },
-            { label: 'Thời gian', value: '5:30', icon: 'schedule', color: 'text-blue-500' },
-            { label: 'XP', value: '+50', icon: 'bolt', color: 'text-yellow-500' },
+            { label: 'Đúng', value: `${score}/${total}`, icon: 'check_circle', color: 'text-green-500' },
+            { label: 'Thời gian', value: '2:15', icon: 'schedule', color: 'text-blue-500' },
+            { label: 'XP', value: `+${score * 5}`, icon: 'bolt', color: 'text-yellow-500' },
           ].map((stat) => (
             <div key={stat.label} className="bg-slate-50 p-4 rounded-2xl flex flex-col items-center gap-1 border border-slate-100">
               <span className={`material-symbols-outlined ${stat.color} filled text-[24px]`}>{stat.icon}</span>

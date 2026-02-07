@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchPractice } from '../api';
+import { fetchPractice, fetchAIQuota, AIQuotaInfo } from '../api';
 import PrimaryButton from '../components/PrimaryButton';
 
 interface FlashcardData {
@@ -20,6 +20,8 @@ const PracticeScreen: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [quota, setQuota] = useState<AIQuotaInfo | null>(null);
+  const [quotaError, setQuotaError] = useState('');
 
   useEffect(() => {
     const loadCards = async () => {
@@ -33,6 +35,18 @@ const PracticeScreen: React.FC = () => {
       }
     };
     loadCards();
+  }, []);
+
+  useEffect(() => {
+    const loadQuota = async () => {
+      try {
+        const data = await fetchAIQuota();
+        setQuota(data);
+      } catch (error) {
+        setQuotaError('Không thể tải quota AI');
+      }
+    };
+    loadQuota();
   }, []);
 
   if (loading || cards.length === 0) {
@@ -71,6 +85,41 @@ const PracticeScreen: React.FC = () => {
           <div className="size-12 rounded-2xl bg-white border border-blue-100 flex items-center justify-center text-primary shadow-sm">
             <span className="material-symbols-outlined filled">star</span>
           </div>
+        </div>
+      </div>
+
+      <div className="w-full mb-6">
+        <div className="rounded-2xl border border-slate-100 bg-white p-4">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            Quota tạo flashcard AI hôm nay
+          </p>
+          {quota ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flashcard</p>
+                <p className="text-lg font-black text-slate-700">{quota.remainingCards}</p>
+                <p className="text-[11px] text-slate-400">còn lại / {quota.maxCards}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lượt hỏi</p>
+                <p className="text-lg font-black text-slate-700">{quota.remainingRequests}</p>
+                <p className="text-[11px] text-slate-400">còn lại / {quota.maxRequests}</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Đã dùng</p>
+                <p className="text-lg font-black text-slate-700">{quota.usedCards}</p>
+                <p className="text-[11px] text-slate-400">flashcard</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngày</p>
+                <p className="text-lg font-black text-slate-700">{quota.date}</p>
+                <p className="text-[11px] text-slate-400">áp dụng</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">{quotaError || 'Đang tải quota...'}</p>
+          )}
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import roadmapRoutes from './routes/roadmap';
 import lessonRoutes from './routes/lesson';
 import statsRoutes from './routes/stats';
 import practiceRoutes from './routes/practice';
+import challengeRoutes from './routes/challenge';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use('/api/roadmap', roadmapRoutes);
 app.use('/api/lesson', lessonRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/practice', practiceRoutes);
+app.use('/api/challenge', challengeRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
     res.json({ status: 'ok', service: 'lesson-service' });

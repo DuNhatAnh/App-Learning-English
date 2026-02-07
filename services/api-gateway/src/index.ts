@@ -45,6 +45,12 @@ app.use('/api/practice', createProxyMiddleware({
     pathRewrite: { '^/api/practice': '/api/practice' }
 }));
 
+app.use('/api/challenge', createProxyMiddleware({
+    target: LESSON_SERVICE,
+    changeOrigin: true,
+    pathRewrite: { '^/api/challenge': '/api/challenge' }
+}));
+
 // Proxy to Progress Service
 app.use('/api/progress', createProxyMiddleware({
     target: PROGRESS_SERVICE,

@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppTab } from './types';
 import BottomNavigation from './components/BottomNavigation';
 import RoadmapScreen from './screens/RoadmapScreen';
 import PracticeScreen from './screens/PracticeScreen';
+import AIFlashcardScreen from './screens/AIFlashcardScreen';
 import ChallengeScreen from './screens/ChallengeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import LessonDetail from './screens/LessonDetail';
@@ -12,15 +13,40 @@ import ListeningQuizScreen from './screens/ListeningQuizScreen';
 import FillBlanksScreen from './screens/FillBlanksScreen';
 import VocabularyQuizScreen from './screens/VocabularyQuizScreen';
 import ChallengeSummaryScreen from './screens/ChallengeSummaryScreen';
+import { fetchRandomQuiz, saveChallengeResult } from './api';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>(AppTab.LEARN);
   const [currentView, setCurrentView] = useState<'main' | 'lesson' | 'celebration' | 'listening_quiz' | 'fill_blanks' | 'vocabulary_quiz' | 'challenge_summary'>('main');
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [challengeQuestions, setChallengeQuestions] = useState<any[]>([]);
+  const [lastChallengeResult, setLastChallengeResult] = useState<{ score: number, total: number } | null>(null);
 
   const handleStartLesson = (lessonId: string) => {
     setSelectedLessonId(lessonId);
     setCurrentView('lesson');
+  };
+
+  const handleStartChallenge = async () => {
+    try {
+      const questions = await fetchRandomQuiz();
+      setChallengeQuestions(questions);
+      setCurrentView('vocabulary_quiz');
+    } catch (error) {
+      alert('Không thể tải câu hỏi thử thách. Vui lòng thử lại sau.');
+    }
+  };
+
+  const handleChallengeComplete = async (score: number, total: number) => {
+    try {
+      await saveChallengeResult('Trắc nghiệm từ vựng', score, total);
+      setLastChallengeResult({ score, total });
+      setCurrentView('challenge_summary');
+    } catch (error) {
+      console.error('Lỗi khi lưu kết quả:', error);
+      setLastChallengeResult({ score, total });
+      setCurrentView('challenge_summary');
+    }
   };
 
   const renderActiveScreen = () => {
@@ -28,14 +54,14 @@ const App: React.FC = () => {
       case AppTab.LEARN:
         return <RoadmapScreen onStartLesson={handleStartLesson} />;
       case AppTab.PRACTICE:
-        return <PracticeScreen />;
+        return <AIFlashcardScreen />;
       case AppTab.CHALLENGES:
         return (
           <ChallengeScreen
             onStartTask={(taskType) => {
               if (taskType === 'listening') setCurrentView('listening_quiz');
               if (taskType === 'fill_blanks') setCurrentView('fill_blanks');
-              if (taskType === 'quiz') setCurrentView('vocabulary_quiz');
+              if (taskType === 'quiz') handleStartChallenge();
             }}
           />
         );
@@ -59,14 +85,22 @@ const App: React.FC = () => {
   }
 
   if (currentView === 'vocabulary_quiz') {
-    return <VocabularyQuizScreen onComplete={() => setCurrentView('challenge_summary')} onBack={() => setCurrentView('main')} />;
+    return <VocabularyQuizScreen
+      questions={challengeQuestions}
+      onComplete={handleChallengeComplete}
+      onBack={() => setCurrentView('main')}
+    />;
   }
 
   if (currentView === 'challenge_summary') {
-    return <ChallengeSummaryScreen onBackToChallenges={() => {
-      setActiveTab(AppTab.CHALLENGES);
-      setCurrentView('main');
-    }} />;
+    return <ChallengeSummaryScreen
+      score={lastChallengeResult?.score || 0}
+      total={lastChallengeResult?.total || 10}
+      onBackToChallenges={() => {
+        setActiveTab(AppTab.CHALLENGES);
+        setCurrentView('main');
+      }}
+    />;
   }
 
   if (currentView === 'celebration') {

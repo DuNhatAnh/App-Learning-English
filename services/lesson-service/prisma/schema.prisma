@@ -69,3 +69,12 @@ model DailyTask {
   isCompleted Boolean  @default(false)
   date        DateTime @default(now())
 }
+
+model ChallengeRecord {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   // Ví dụ: "Trắc nghiệm từ vựng"
+  score     Int
+  total     Int
+  createdAt DateTime @default(now())
+}
